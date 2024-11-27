@@ -1,0 +1,420 @@
+<html>
+<head>
+<meta charset="utf-8">
+    <title>Solar Sistem Üretim Hesaplayıcı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="flex flex-col lg:flex-row space-y-8 lg:space-y-0 lg:space-x-8 w-full max-w-7xl">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/3">
+            <h1 class="text-2xl font-bold mb-6 text-center">Solar Sistem Üretim Hesaplayıcı</h1>
+            <div class="mb-4">
+                <label for="battery-brand" class="block text-sm font-bold mb-2">Akü markasını seçin:</label>
+                <select id="battery-brand" class="w-full p-2 border border-gray-300 rounded" onchange="updateBatteryModelOptions()">
+                    <option value="">Seçiniz</option>
+                    <option value="ritar">RITAR</option>
+                    <option value="byd">BYD</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="battery-model" class="block text-sm font-bold mb-2">Akü modelinizi seçin:</label>
+                <select id="battery-model" class="w-full p-2 border border-gray-300 rounded">
+                    <option value="">Seçiniz</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="battery-quantity" class="block text-sm font-bold mb-2">Akü sayısı:</label>
+                <input type="number" id="battery-quantity" class="w-full p-2 border border-gray-300 rounded" min="1" placeholder="Adet giriniz" oninput="validateBatteryQuantity()">
+				<p id="battery-quantity-feedback" class="text-red-500 mt-1">
+            </div>
+            <div class="mb-4">
+                <label for="inverter-brand" class="block text-sm font-bold mb-2">Inverter markanızı seçin:</label>
+                <select id="inverter-brand" class="w-full p-2 border border-gray-300 rounded" onchange="updateModelOptions()">
+                    <option value="">Seçiniz</option>
+                    <option value="sako">Sako</option>
+                    <option value="deye">DEYE</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="inverter-model" class="block text-sm font-bold mb-2">Inverter modelinizi seçin:</label>
+                <select id="inverter-model" class="w-full p-2 border border-gray-300 rounded">
+                    <option value="">Seçiniz</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="solar-panel" class="block text-sm font-bold mb-2">Solar panel seçiniz:</label>
+                <select id="solar-panel" class="w-full p-2 border border-gray-300 rounded">
+                    <option value="">Seçiniz</option>
+                    <option value="osda-solar-590wp-bifacial">Osda Solar 590WP Bifacial</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="panel-quantity" class="block text-sm font-bold mb-2">Solar panel sayısı:</label>
+                <input type="number" id="panel-quantity" class="w-full p-2 border border-gray-300 rounded" min="1" placeholder="Adet giriniz" oninput="validatePanelQuantity()">
+				<p id="panel-quantity-feedback" class="text-red-500 mt-1"></p>
+            </div>
+            <button class="w-full bg-blue-500 text-white p-2 rounded font-bold hover:bg-blue-700" onclick="calculate()">Hesapla</button>
+            <div class="mt-6 p-4 bg-blue-100 border border-blue-300 rounded text-blue-700" id="result"></div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-2/3">
+            <h1 class="text-2xl font-bold mb-6 text-center">Ürün Seçimi ve Tüketim</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="device-list">
+                <div class="col-span-1">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>LED AMPUL (12W)</span>
+                    </div>
+                    <input type="number" class="w-full p-2 border border-gray-300 rounded mt-2" placeholder="Dakika giriniz" data-watt="12">
+                </div>
+                <div class="col-span-1">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-wind"></i>
+                        <span>18'LİK KLİMA (4000W)</span>
+                    </div>
+                    <input type="number" class="w-full p-2 border border-gray-300 rounded mt-2" placeholder="Dakika giriniz" data-watt="4000">
+                </div>
+                <div class="col-span-1">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-wind"></i>
+                        <span>12'LİK KLİMA (3000W)</span>
+                    </div>
+                    <input type="number" class="w-full p-2 border border-gray-300 rounded mt-2" placeholder="Dakika giriniz" data-watt="3000">
+                </div>
+            </div>
+            <button class="w-full bg-gray-500 text-white p-2 rounded font-bold hover:bg-gray-700 mt-4" onclick="showDeviceMenu()">Cihaz Ekle</button>
+            <button class="w-full bg-green-500 text-white p-2 rounded font-bold hover:bg-green-700 mt-4" onclick="calculateConsumption()">Tüketimi Hesapla</button>
+            <div class="mt-6 p-4 bg-green-100 border border-green-300 rounded text-green-700" id="consumption-result">
+                <p class="flex items-center"><i class="fas fa-bolt mr-2"></i> Toplam Tüketim: 0.00 kWh</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="device-menu" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Cihaz Seç</h2>
+            <select id="device-select" class="w-full p-2 border border-gray-300 rounded mb-4">
+                <option value="">Seçiniz</option>
+                <option value="3">LED TV (300W)</option>
+                <option value="4">MASAÜSTÜ PC (500W)</option>
+                <option value="5">BUZDOLABI (200W)</option>
+                <option value="6">DERİN DONDURUCU (200W)</option>
+                <option value="7">BULAŞIK MAKİNESİ (2000W)</option>
+                <option value="8">FIRIN (4000W)</option>
+                <option value="9">KAMERA (37W)</option>
+                <option value="10">SU SEBİLİ (100W)</option>
+                <option value="11">MODEM (20W)</option>
+                <option value="12">SAÇ KURUTMA MAKİNESİ (2000W)</option>
+                <option value="13">KETTLE / SU ISITICI (2000W)</option>
+                <option value="14">ÜTÜ (1500W)</option>
+                <option value="15">ÇAMAŞIR MAKİNESİ (500-2500W)</option>
+                <option value="16">SU MOTORU 1HP (750W)</option>
+            </select>
+            <button class="w-full bg-blue-500 text-white p-2 rounded font-bold hover:bg-blue-700" onclick="addSelectedDevice()">Ekle</button>
+            <button class="w-full bg-red-500 text-white p-2 rounded font-bold hover:bg-red-700 mt-2" onclick="closeDeviceMenu()">Kapat</button>
+        </div>
+    </div>
+
+    <script>
+        let totalStoredEnergy = 0;
+        const devices = [
+            { name: 'LED AMPUL (12W)', watt: 12, icon: 'fa-lightbulb' },
+            { name: '18\'LİK KLİMA (4000W)', watt: 4000, icon: 'fa-wind' },
+            { name: '12\'LİK KLİMA (3000W)', watt: 3000, icon: 'fa-wind' },
+            { name: 'LED TV (300W)', watt: 300, icon: 'fa-tv' },
+            { name: 'MASAÜSTÜ PC (500W)', watt: 500, icon: 'fa-desktop' },
+            { name: 'BUZDOLABI (200W)', watt: 200, icon: 'fa-ice-cream' },
+            { name: 'DERİN DONDURUCU (200W)', watt: 200, icon: 'fa-snowflake' },
+            { name: 'BULAŞIK MAKİNESİ (2000W)', watt: 2000, icon: 'fa-utensils' },
+            { name: 'FIRIN (4000W)', watt: 4000, icon: 'fa-oven' },
+            { name: 'KAMERA (37W)', watt: 37, icon: 'fa-video' },
+            { name: 'SU SEBİLİ (100W)', watt: 100, icon: 'fa-water' },
+            { name: 'MODEM (20W)', watt: 20, icon: 'fa-wifi' },
+            { name: 'SAÇ KURUTMA MAKİNESİ (2000W)', watt: 2000, icon: 'fa-wind' },
+            { name: 'KETTLE / SU ISITICI (2000W)', watt: 2000, icon: 'fa-coffee' },
+            { name: 'ÜTÜ (1500W)', watt: 1500, icon: 'fa-tshirt' },
+            { name: 'ÇAMAŞIR MAKİNESİ (500-2500W)', watt: 1500, icon: 'fa-washing-machine' },
+            { name: 'SU MOTORU 1HP (750W)', watt: 750, icon: 'fa-water' }
+        ];
+
+function updateModelOptions() {
+    const brand = document.getElementById('inverter-brand').value;
+    const modelSelect = document.getElementById('inverter-model');
+    modelSelect.innerHTML = '';
+
+    // Disable SAKO option if BYD is selected
+    const batteryBrand = document.getElementById('battery-brand').value;
+    const sakoOption = document.querySelector('#inverter-brand option[value="sako"]');
+    
+    if (batteryBrand === 'byd') {
+        sakoOption.disabled = true; // Disable SAKO
+    } else {
+        sakoOption.disabled = false; // Enable SAKO
+    }
+
+    if (brand === 'sako') {
+        const sakoModels = [
+            'SOLAR INV. 2KW 12V ESUN SAKO',
+            'SOLAR INV. 3KW 24V PWM SVP SAKO',
+            'SOLAR INV. 3.5KW 24V MPPT SUNONPRO SAKO',
+            'SOLAR INV. 4.2KW 24V SUNON ULTRA SAKO',
+            'SOLAR INV. 5.5KW 48V MPPT SUNONPRO SAKO',
+            'SOLAR INV. 6KW 48V HYBRID SUNPOLO SAKO'
+        ];
+        sakoModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    } else if (brand === 'deye') {
+        const deyeModels = [
+            'SOLAR INV. HYBRID 1 FAZ 3.6KW DEYE',
+            'SOLAR INV. HYBRID 1 FAZ 5KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 6KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 8KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 10KW DEYE'
+        ];
+        deyeModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    }
+}
+function updateBatteryModelOptions() {
+    const brand = document.getElementById('battery-brand').value;
+    const modelSelect = document.getElementById('battery-model');
+    modelSelect.innerHTML = '';
+
+    if (brand === 'ritar') {
+        const ritarModels = [
+            'Ritar 12V 100A Jel Akü',
+            'Ritar 12V 150A Jel Akü',
+            'Ritar 12V 200A Jel Akü'
+        ];
+        ritarModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    } else if (brand === 'byd') {
+        const bydModels = [
+            'BYD LV5.0 5KWH 70A 51.2V'
+        ];
+        bydModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    }
+
+    updateModelOptions(); // İnverter markalarını güncelle
+}
+
+function updateModelOptions() {
+    const batteryBrand = document.getElementById('battery-brand').value;
+    const brand = document.getElementById('inverter-brand').value;
+    const modelSelect = document.getElementById('inverter-model');
+    modelSelect.innerHTML = '';
+
+    const sakoOption = document.querySelector('#inverter-brand option[value="sako"]');
+    if (batteryBrand === 'byd') {
+        sakoOption.disabled = true; // Disable SAKO
+    } else {
+        sakoOption.disabled = false; // Enable SAKO
+    }
+
+    if (brand === 'sako' && batteryBrand !== 'byd') {
+        const sakoModels = [
+            'SOLAR INV. 2KW 12V ESUN SAKO',
+            'SOLAR INV. 3KW 24V PWM SVP SAKO',
+            'SOLAR INV. 3.5KW 24V MPPT SUNONPRO SAKO',
+            'SOLAR INV. 4.2KW 24V SUNON ULTRA SAKO',
+            'SOLAR INV. 5.5KW 48V MPPT SUNONPRO SAKO',
+            'SOLAR INV. 6KW 48V HYBRID SUNPOLO SAKO'
+        ];
+        sakoModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    } else if (brand === 'deye') {
+        const deyeModels = [
+            'SOLAR INV. HYBRID 1 FAZ 3.6KW DEYE',
+            'SOLAR INV. HYBRID 1 FAZ 5KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 6KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 8KW DEYE',
+            'SOLAR INV. HYBRID 3 FAZ 10KW DEYE'
+        ];
+        deyeModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    }
+}
+
+// Add event listener to battery brand select
+document.getElementById('battery-brand').addEventListener('change', updateBatteryModelOptions);
+
+// Call updateModelOptions initially to disable SAKO option if needed
+updateModelOptions();
+
+function validateBatteryQuantity() {
+    const batteryQuantity = parseInt(document.getElementById('battery-quantity').value);
+    const feedback = document.getElementById('battery-quantity-feedback');
+
+    if (batteryQuantity <= 0 || isNaN(batteryQuantity)) {
+        feedback.textContent = "Geçerli bir akü sayısı girin.";
+    } else {
+        feedback.textContent = "";
+    }
+}
+
+function validatePanelQuantity() { 
+const panelQuantity = parseInt(document.getElementById('panel-quantity').value);
+const feedback = document.getElementById('panel-quantity-feedback'); 
+
+if (panelQuantity <= 0 || isNaN(panelQuantity)) { 
+feedback.textContent = "Geçerli bir solar panel sayısı girin."; 
+} else { 
+feedback.textContent = ""; 
+
+} 
+
+}
+
+
+
+function calculate() {
+    const batteryModel = document.getElementById('battery-model').value;
+    const batteryQuantity = parseInt(document.getElementById('battery-quantity').value);
+    const inverterModel = document.getElementById('inverter-model').value;
+    const panelQuantity = parseInt(document.getElementById('panel-quantity').value);
+
+// Hata Kontrolü: Negatif veya mantıksız yüksek değerleri kontrol et
+ if (batteryQuantity <= 0 || isNaN(batteryQuantity)) { 
+ alert("Lütfen geçerli bir akü sayısı girin."); 
+ return; 
+ } 
+ 
+ if (panelQuantity <= 0 || isNaN(panelQuantity)) { 
+ alert("Lütfen geçerli bir solar panel sayısı girin."); 
+ return;
+ }
+ 
+    let batteryCapacity = 0;
+    let batteryVoltage = 12; // Ritar akülerin hepsi 12V
+
+    if (batteryModel.includes('100A')) {
+        batteryCapacity = 1.2; // 12V * 100A = 1.2 kWh
+    } else if (batteryModel.includes('150A')) {
+        batteryCapacity = 1.8; // 12V * 150A = 1.8 kWh
+    } else if (batteryModel.includes('200A')) {
+        batteryCapacity = 2.4; // 12V * 200A = 2.4 kWh
+    } else if (batteryModel.includes('5KWH')) {
+        batteryCapacity = 5; // 5 kWh
+    }
+
+    totalStoredEnergy = batteryCapacity * batteryQuantity;
+
+    const panelPower = 0.59; // 590WP = 0.59 kW
+    const hourlyProduction = panelPower * panelQuantity;
+    const dailyProduction = hourlyProduction * 5; // Assuming 5 hours of sunlight
+
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `
+        <p class="flex items-center"><i class="fas fa-battery-full mr-2"></i> Depolanan toplam enerji: ${totalStoredEnergy.toFixed(2)} kWh</p>
+        <p class="flex items-center"><i class="fas fa-solar-panel mr-2"></i> Saatlik üretim miktarı: ${hourlyProduction.toFixed(2)} kW</p>
+        <p class="flex items-center"><i class="fas fa-sun mr-2"></i> Günlük üretim miktarı: ${dailyProduction.toFixed(2)} kWh</p>
+    `;
+
+    // İnverter voltaj kontrolü
+    let inverterVoltage = 0;
+    if (inverterModel.includes('24V')) {
+        inverterVoltage = 24;
+    } else if (inverterModel.includes('48V')) {
+        inverterVoltage = 48;
+    } else {
+        inverterVoltage = 12;
+    }
+
+    const voltageMismatch = (inverterVoltage / batteryVoltage) > batteryQuantity;
+
+    if (voltageMismatch) {
+        resultDiv.innerHTML += `
+            <p class="flex items-center" style="color: red; font-weight: bold;"><i class="fas fa-exclamation-circle mr-2"></i> Akü Voltajı Inverter Voltajından Düşük Olamaz. Sistem Uyumsuzdur.</p>
+        `;
+    }
+}
+
+function calculateConsumption() {
+    const inputs = document.querySelectorAll('[data-watt]');
+    let totalConsumption = 0;
+
+    inputs.forEach(input => {
+        const watt = parseInt(input.getAttribute('data-watt'));
+        const minutes = parseInt(input.value) || 0;
+        totalConsumption += watt * (minutes / 60); // Convert minutes to hours
+    });
+
+    totalConsumption /= 1000; // Divide by 1000 to convert to kWh
+
+    const consumptionResultDiv = document.getElementById('consumption-result');
+    consumptionResultDiv.innerHTML = `
+        <p class="flex items-center"><i class="fas fa-bolt mr-2"></i> Toplam Tüketim: ${totalConsumption.toFixed(2)} kWh</p>
+    `;
+
+    const energyDifference = totalStoredEnergy - totalConsumption;
+    const energyStatus = energyDifference >= 0 
+        ? "Depolanan enerji yeterlidir." 
+        : '<span style="color: red; font-weight: bold;">Depolanan enerji yeterli değildir.</span>';
+    consumptionResultDiv.innerHTML += `
+        <p class="flex items-center"><i class="fas fa-info-circle mr-2"></i> ${energyStatus}</p>
+    `;
+}
+
+
+
+        function showDeviceMenu() {
+            document.getElementById('device-menu').classList.remove('hidden');
+        }
+
+        function closeDeviceMenu() {
+            document.getElementById('device-menu').classList.add('hidden');
+        }
+
+        function addSelectedDevice() {
+            const deviceIndex = parseInt(document.getElementById('device-select').value);
+            if (!isNaN(deviceIndex)) {
+                const device = devices[deviceIndex];
+                const deviceList = document.getElementById('device-list');
+                const deviceDiv = document.createElement('div');
+                deviceDiv.className = 'col-span-1';
+                deviceDiv.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="fas ${device.icon}"></i>
+                        <span>${device.name}</span>
+                    </div>
+                    <input type="number" class="w-full p-2 border border-gray-300 rounded mt-2" placeholder="Dakika giriniz" data-watt="${device.watt}">
+                `;
+                deviceList.appendChild(deviceDiv);
+                closeDeviceMenu();
+            }
+        }
+    </script>
+</body>
+</html>
